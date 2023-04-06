@@ -10,9 +10,12 @@ import axios from 'axios';
  * @param context Context of the extension
  */
 export function activate(context: ExtensionContext) {
-	console.log('Congratulations, your extension "juandy-gpt-assistant" is now active!');
+	const optimizePrompt = 'You are a code optimizer that receives {{LANG}} code and outputs an optimized version of the {{LANG}} code.';
+	const documentPrompt = 'You are a code documenting tool that receives {{LANG}} code and outputs the same code with comments in each line.';
+	const analyzePrompt = 'You are a code analyzer that receives {{LANG}} code and outputs an brief explanation of what the code does in plain English';
+	const dryPrompt = 'You are a code optimizer that receives {{LANG}} code and outputs refactored, concise, and DRY {{LANG}} code.';
 
-	const onlyCodeDirective = 'Only reply with the output inside one unique code block, and nothing else. Do not write explanations.';
+	const onlyCodeDirective = ' Only reply with the output inside one unique code block, and nothing else. Do not write explanations.';
 	
 	const progressOptions = {
 		location: ProgressLocation.Notification,
@@ -25,8 +28,10 @@ export function activate(context: ExtensionContext) {
 		await window.withProgress(
 			progressOptions,
 			() =>
-				executeCommand(`You are a code optimizer that receives {{LANG}} code and outputs an optimized version of the {{LANG}} code. ${onlyCodeDirective}`)
-				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('optimizePrompt', '') + onlyCodeDirective)
+				executeCommand(
+					workspace
+						.getConfiguration('juandy-gpt-assistant')
+						.get('optimizePrompt', optimizePrompt) + onlyCodeDirective)
 		  );
 		}
 	);
@@ -38,8 +43,10 @@ export function activate(context: ExtensionContext) {
 		await window.withProgress(
 			progressOptions,
 			() =>
-				executeCommand(`You are a code documenting tool that receives {{LANG}} code and outputs the same code with comments in each line. ${onlyCodeDirective}`)
-				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('documentPrompt', '') + onlyCodeDirective)
+				executeCommand(
+					workspace
+						.getConfiguration('juandy-gpt-assistant')
+						.get('documentPrompt', documentPrompt) + onlyCodeDirective)
 		  );
 		}
 	);
@@ -51,8 +58,10 @@ export function activate(context: ExtensionContext) {
 		await window.withProgress(
 			progressOptions,
 			() =>
-				executeCommand(`You are a code analyzer that receives {{LANG}} code and outputs an brief explanation of what the code does in plain English`, false)
-				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('analyzePrompt', ''), false)
+				executeCommand(
+					workspace
+						.getConfiguration('juandy-gpt-assistant')
+						.get('analyzePrompt', analyzePrompt), false)
 		  );
 		}
 	);
@@ -64,8 +73,10 @@ export function activate(context: ExtensionContext) {
 		await window.withProgress(
 			progressOptions,
 			() =>
-				executeCommand(`You are a code optimizer that receives {{LANG}} code and outputs refactored, concise, and DRY {{LANG}} code. ${onlyCodeDirective}`)
-				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('dryPrompt', '') + onlyCodeDirective)
+				executeCommand(
+					workspace
+						.getConfiguration('juandy-gpt-assistant')
+						.get('dryPrompt', dryPrompt) + onlyCodeDirective)
 		  );
 		}
 	);
@@ -208,11 +219,11 @@ async function executeCommand(instruction: string, edit: boolean = true) {
 			// Replace the {{CODE}} placeholder with the language ID
 			const prompt = instruction.replace('{{LANG}}', languageId);
 			// Display an information popup
-			console.log(`PROMPT: \n${prompt}\n\n`);
+			//console.log(`PROMPT: \n${prompt}\n\n`);
 			// Generate the edited code
 			const response = await generateEdit(selectedText, prompt);
 			// Display the response
-			console.log(`RESPONSE: \n\n${response}\n\n`);
+			//console.log(`RESPONSE: \n\n${response}\n\n`);
 			// Apply the edited code to the active text editor
 			await editor.edit((editBuilder) => {
 				editBuilder.replace(selection, response);
@@ -221,7 +232,7 @@ async function executeCommand(instruction: string, edit: boolean = true) {
 			// Generate the completion
 			const response = await generateCompletion(`${instruction} \n\n${selectedText}`);
 			// Display the response
-			console.log(`RESPONSE: \n\n${response}\n\n`);
+			//console.log(`RESPONSE: \n\n${response}\n\n`);
 			// Display an information popup
   			window.showInformationMessage(response);
 		}
@@ -240,7 +251,7 @@ async function executeCommand(instruction: string, edit: boolean = true) {
  * @throws An error if the API response is invalid or if the request fails
  */
 async function generateEdit(prompt: string, instruction: string): Promise<string> {
-	const apiKey = workspace.getConfiguration('JuandyGPTExtension').get('apiKey', '');
+	const apiKey = workspace.getConfiguration('juandy-gpt-assistant').get('apiKey');
 	const apiURL = 'https://api.openai.com/v1/edits';
 
 	// Check if the API key is provided
@@ -285,7 +296,7 @@ async function generateEdit(prompt: string, instruction: string): Promise<string
  * @throws An error if the API response is invalid or if the request fails
  */
 async function generateCompletion(prompt: string): Promise<string> {
-	const apiKey = workspace.getConfiguration('JuandyGPTExtension').get('apiKey', '');
+	const apiKey = workspace.getConfiguration('juandy-gpt-assistant').get('apiKey');
 	const apiURL = 'https://api.openai.com/v1/chat/completions';
 
 	// Check if the API key is provided
