@@ -15,10 +15,14 @@ You must provide a OpenAI API key to communicate with ChatGPT
 This extension contributes the following settings:
 
 * `juandy-gpt-assistant.apiKey`: OpenAI API key.
+* `juandy-gpt-assistant.optimizePrompt`: Optimize prompt.
+* `juandy-gpt-assistant.documentPrompt`: Document prompt.
+* `juandy-gpt-assistant.analyzePrompt`: Analyze prompt.
+* `juandy-gpt-assistant.dryPrompt`: DRY prompt.
 
 ## Known Issues
 
-
+* None so far
 
 ## Release Notes
 
