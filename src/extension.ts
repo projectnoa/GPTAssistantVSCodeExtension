@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { ExtensionContext, commands, window, workspace } from 'vscode';
+import { ExtensionContext, ProgressLocation, commands, window, workspace } from 'vscode';
 import axios from 'axios';
 
 /**
@@ -10,67 +10,118 @@ import axios from 'axios';
  * @param context Context of the extension
  */
 export function activate(context: ExtensionContext) {
-	console.log('Congratulations, your extension "juandyGPTcode" is now active!');
+	console.log('Congratulations, your extension "juandy-gpt-assistant" is now active!');
+
+	const onlyCodeDirective = 'Only reply with the output inside one unique code block, and nothing else. Do not write explanations.';
 	
+	const progressOptions = {
+		location: ProgressLocation.Notification,
+		title: 'Loading...',
+		cancellable: true
+	};
+
 	// Register the optimize command and add it to the context subscriptions
-	const optimizeDisposable = commands.registerCommand('juandyGPTcode.optimize', () =>
-		executeCommand('Refactor, optimize, and document this code.')
+	const optimizeDisposable = commands.registerCommand('juandy-gpt-assistant.optimize', async () => {
+		await window.withProgress(
+			progressOptions,
+			() =>
+				executeCommand(`You are a code optimizer that receives {{LANG}} code and outputs an optimized version of the {{LANG}} code. ${onlyCodeDirective}`)
+				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('optimizePrompt', '') + onlyCodeDirective)
+		  );
+		}
 	);
 
 	context.subscriptions.push(optimizeDisposable);
 	
 	// Register the document command and add it to the context subscriptions
-	const documentDisposable = commands.registerCommand('juandyGPTcode.document', () =>
-		executeCommand('Document this code.')
+	const documentDisposable = commands.registerCommand('juandy-gpt-assistant.document',  async () => {
+		await window.withProgress(
+			progressOptions,
+			() =>
+				executeCommand(`You are a {{LANG}} developer that receives {{LANG}} code and outputs the same code with comments. ${onlyCodeDirective}`)
+				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('documentPrompt', '') + onlyCodeDirective)
+		  );
+		}
 	);
 
 	context.subscriptions.push(documentDisposable);
 
 	// Register the analyze command and add it to the context subscriptions
-	const analizeDisposable = commands.registerCommand('juandyGPTcode.analyze', () =>
-		executeCommand('Analyze this code.', false)
+	const analizeDisposable = commands.registerCommand('juandy-gpt-assistant.analyze', async () => {
+		await window.withProgress(
+			progressOptions,
+			() =>
+				executeCommand(`You are a code analyzer that receives {{LANG}} code and outputs an brief explanation of what the code does in plain English`, false)
+				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('analyzePrompt', ''), false)
+		  );
+		}
 	);
 
 	context.subscriptions.push(analizeDisposable);
 
+	// Register the DRY command and add it to the context subscriptions
+	const dryDisposable = commands.registerCommand('juandy-gpt-assistant.dry', async () => {
+		await window.withProgress(
+			progressOptions,
+			() =>
+				executeCommand(`You are a code optimizer that receives {{LANG}} code and outputs refactored, concise, and DRY {{LANG}} code. ${onlyCodeDirective}`)
+				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('dryPrompt', '') + onlyCodeDirective)
+		  );
+		}
+	);
+
+	context.subscriptions.push(dryDisposable);
+
 	// Register the inquire command and add it to the context subscriptions
-	const inquireDisposable = commands.registerCommand('juandyGPTcode.inquire', async () => {
-		// Get the active text editor
-		const editor = window.activeTextEditor;
+	const inquireDisposable = commands.registerCommand('juandy-gpt-assistant.inquire', async () => {
+		await window.withProgress(
+			progressOptions,
+			async () => {
+				// Get the active text editor
+				const editor = window.activeTextEditor;
 
-		// If there is no active text editor, exit the function
-		if (!editor) {
-			return;
+				// If there is no active text editor, exit the function
+				if (!editor) {
+					return;
+				}
+
+				// Get the user-selected text
+				const selection = editor.selection;
+				const selectedText = editor.document.getText(selection);
+
+				// If there is no text selected, show an information message and exit the function
+				if (!selectedText) {
+					window.showInformationMessage('No text selected.');
+
+					return;
+				}
+
+				// Display an input box and request user input
+				const userInput = await window.showInputBox({
+					prompt: 'Ask a question about this code.',
+					value: selectedText
+				});
+
+				// Check if the user provided input or dismissed the input box
+				if (userInput !== undefined) {
+					// Handle the user input
+					return executeCommand(userInput, false);
+				} else {
+					// The user dismissed the input box without providing input
+					window.showWarningMessage('No input provided');
+				}
+			}
+		  );
 		}
-
-		// Get the user-selected text
-		const selection = editor.selection;
-		const selectedText = editor.document.getText(selection);
-
-		// If there is no text selected, show an information message and exit the function
-		if (!selectedText) {
-			window.showInformationMessage('No text selected.');
-
-			return;
-		}
-
-		// Display an input box and request user input
-		const userInput = await window.showInputBox({
-			prompt: 'Ask a question about this code.',
-			value: selectedText
-		});
-
-		// Check if the user provided input or dismissed the input box
-		if (userInput !== undefined) {
-			// Handle the user input
-			return executeCommand(userInput, false);
-		} else {
-			// The user dismissed the input box without providing input
-			window.showWarningMessage('No input provided');
-		}
-	});
+	);
 
 	context.subscriptions.push(inquireDisposable);
+
+	const promptPanelDisposable = commands.registerCommand('juandy-gpt-assistant.showPanel', () => {
+		commands.executeCommand('workbench.view.extension.prompt-panel-view');
+	});
+
+	context.subscriptions.push(promptPanelDisposable);
 }
 
 /**
@@ -93,6 +144,7 @@ async function executeCommand(instruction: string, edit: boolean = true) {
 	// Get the user-selected text
 	const selection = editor.selection;
 	const selectedText = editor.document.getText(selection);
+	const languageId = editor.document.languageId;
 
 	// If there is no text selected, show an information message and exit the function
 	if (!selectedText) {
@@ -104,15 +156,23 @@ async function executeCommand(instruction: string, edit: boolean = true) {
 	// Call the generateEdit() or generateCompletion() functions to perform the requested action
 	try {
 		if (edit) {
-			const response = await generateEdit(selectedText, instruction);
-
+			// Replace the {{CODE}} placeholder with the language ID
+			const prompt = instruction.replace('{{LANG}}', languageId);
+			// Display an information popup
+			console.log(`PROMPT: \n${prompt}\n\n`);
+			// Generate the edited code
+			const response = await generateEdit(selectedText, prompt);
+			// Display the response
+			console.log(`RESPONSE: \n\n${response}\n\n`);
 			// Apply the edited code to the active text editor
 			await editor.edit((editBuilder) => {
 				editBuilder.replace(selection, response);
 			});
 		} else {
+			// Generate the completion
 			const response = await generateCompletion(`${instruction} \n\n${selectedText}`);
-
+			// Display the response
+			console.log(`RESPONSE: \n\n${response}\n\n`);
 			// Display an information popup
   			window.showInformationMessage(response);
 		}

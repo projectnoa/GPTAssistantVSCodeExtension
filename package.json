@@ -1,5 +1,5 @@
 {
-  "name": "juandyGPTassistant",
+  "name": "juandy-gpt-assistant",
   "publisher": "juanmanuelreyes",
   "displayName": "juandy-gpt-assistant",
   "description": "Personal extension that adds GPT features to VSCode",
@@ -17,54 +17,88 @@
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "JuandyGPTExtension",
+      "title": "juandy-gpt-assistant",
       "properties": {
-        "JuandyGPTExtension.apiKey": {
+        "juandy-gpt-assistant.apiKey": {
           "type": "string",
           "default": "",
-          "description": "GPT API key for My Extension"
+          "description": "GPT API key"
+        },
+        "juandy-gpt-assistant.optimizePrompt": {
+          "type": "string",
+          "default": "You are a code optimizer that receives {{LANG}} code and outputs an optimized version of the {{LANG}} code.",
+          "description": "Optimize prompt"
+        },
+        "juandy-gpt-assistant.documentPrompt": {
+          "type": "string",
+          "default": "You are a code documenter that receives {{LANG}} code and outputs the code with rich comments.",
+          "description": "Document prompt"
+        },
+        "juandy-gpt-assistant.analyzePrompt": {
+          "type": "string",
+          "default": "You are a code analyzer that receives {{LANG}} code and outputs an brief explanation of what the code does in plain English.",
+          "description": "Analyze prompt"
+        },
+        "juandy-gpt-assistant.dryPrompt": {
+          "type": "string",
+          "default": "You are a code optimizer that receives {{LANG}} code and outputs refactored, concise, and DRY {{LANG}} code.",
+          "description": "DRY prompt"
         }
       }
     },
     "commands": [
       {
-        "command": "juandyGPTcode.optimize",
+        "command": "juandy-gpt-assistant.optimize",
         "title": "Optimize code"
       },
       {
-        "command": "juandyGPTcode.document",
+        "command": "juandy-gpt-assistant.document",
         "title": "Document code"
       },
       {
-        "command": "juandyGPTcode.analyze",
+        "command": "juandy-gpt-assistant.analyze",
         "title": "Analyze code"
       },
       {
-        "command": "juandyGPTcode.inquire",
+        "command": "juandy-gpt-assistant.dry",
+        "title": "DRY code"
+      },
+      {
+        "command": "juandy-gpt-assistant.inquire",
         "title": "Inquire ChatGPT"
+      },
+      {
+        "command": "juandy-gpt-assistant.showPanel",
+        "title": "Show Panel"
       }
     ],
     "keybindings": [
       {
-        "command": "juandyGPTcode.optimize",
+        "command": "juandy-gpt-assistant.optimize",
         "key": "ctrl+shift+o",
         "mac": "cmd+shift+o",
         "when": "editorTextFocus"
       },
       {
-        "command": "juandyGPTcode.document",
+        "command": "juandy-gpt-assistant.document",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus"
       },
       {
-        "command": "juandyGPTcode.analyze",
+        "command": "juandy-gpt-assistant.analyze",
         "key": "ctrl+shift+a",
         "mac": "cmd+shift+a",
         "when": "editorTextFocus"
       },
       {
-        "command": "juandyGPTcode.inquire",
+        "command": "juandy-gpt-assistant.dry",
+        "key": "ctrl+shift+y",
+        "mac": "cmd+shift+y",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "juandy-gpt-assistant.inquire",
         "key": "ctrl+shift+i",
         "mac": "cmd+shift+i",
         "when": "editorTextFocus"
@@ -73,20 +107,41 @@
     "menus": {
       "editor/context": [
         {
-          "command": "juandyGPTcode.optimize",
+          "command": "juandy-gpt-assistant.optimize",
           "group": "editor"
         },
         {
-          "command": "juandyGPTcode.document",
+          "command": "juandy-gpt-assistant.document",
           "group": "editor"
         },
         {
-          "command": "juandyGPTcode.analyze",
+          "command": "juandy-gpt-assistant.analyze",
           "group": "editor"
         },
         {
-          "command": "juandyGPTcode.inquire",
+          "command": "juandy-gpt-assistant.dry",
           "group": "editor"
+        },
+        {
+          "command": "juandy-gpt-assistant.inquire",
+          "group": "editor"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "prompt-panel",
+          "title": "Prompt Panel",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "prompt-panel": [
+        {
+          "id": "prompt-panel-view",
+          "name": "Prompt Panel View"
         }
       ]
     }
