@@ -251,11 +251,15 @@ async function executeCommand(instruction: string, edit: boolean = true) {
 
 	// Call the generateEdit() or generateCompletion() functions to perform the requested action
 	try {
+		// Replace the {{LANG}} placeholder with the language ID
+		//const prompt = instruction.replace(languageKey, languageId);
+
+		// Replace all instances of the {{LANG}} placeholder with the language ID
+		const prompt = instruction.replace(new RegExp(languageKey, 'g'), languageId);
+
 		if (edit) {
-			// Replace the {{CODE}} placeholder with the language ID
-			const prompt = instruction.replace(languageKey, languageId);
 			// Display an information popup
-			//console.log(`PROMPT: \n${prompt}\n\n`);
+			console.log(`PROMPT: \n${prompt}\n\n`);
 			// Generate the edited code
 			const response = await generateEdit(selectedText, prompt);
 			// Display the response
@@ -265,8 +269,10 @@ async function executeCommand(instruction: string, edit: boolean = true) {
 				editBuilder.replace(selection, response);
 			});
 		} else {
+			// Display an information popup
+			console.log(`PROMPT: \n${prompt}\n\n`);
 			// Generate the completion
-			const response = await generateCompletion(`${instruction} \n\n${selectedText}`);
+			const response = await generateCompletion(`${prompt} \n\n${selectedText}`);
 			// Display the response
 			//console.log(`RESPONSE: \n\n${response}\n\n`);
 			// Display an information popup
