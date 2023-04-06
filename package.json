@@ -2,7 +2,7 @@
   "name": "juandy-gpt-assistant",
   "publisher": "juanmanuelreyes",
   "displayName": "juandy-gpt-assistant",
-  "description": "Personal extension that adds GPT features to VSCode",
+  "description": "Coding extension that adds GPT features to VSCode",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.76.0"
@@ -31,7 +31,7 @@
         },
         "juandy-gpt-assistant.documentPrompt": {
           "type": "string",
-          "default": "You are a code documenter that receives {{LANG}} code and outputs the code with rich comments.",
+          "default": "You are a code documenting tool that receives {{LANG}} code and outputs the same code with comments in each line.",
           "description": "Document prompt"
         },
         "juandy-gpt-assistant.analyzePrompt": {
@@ -69,7 +69,7 @@
       },
       {
         "command": "juandy-gpt-assistant.showPanel",
-        "title": "Show Panel"
+        "title": "Show Juandy GPT Prompt Panel"
       }
     ],
     "keybindings": [
@@ -133,7 +133,7 @@
         {
           "id": "prompt-panel",
           "title": "Prompt Panel",
-          "icon": "resources/icon.svg"
+          "icon": "resources/icon.ico"
         }
       ]
     },

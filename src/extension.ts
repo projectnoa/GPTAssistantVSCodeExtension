@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { ExtensionContext, ProgressLocation, commands, window, workspace } from 'vscode';
+import { Event, EventEmitter, ExtensionContext, ProgressLocation, TreeDataProvider, TreeItem, commands, window, workspace } from 'vscode';
 import axios from 'axios';
 
 /**
@@ -38,7 +38,7 @@ export function activate(context: ExtensionContext) {
 		await window.withProgress(
 			progressOptions,
 			() =>
-				executeCommand(`You are a {{LANG}} developer that receives {{LANG}} code and outputs the same code with comments. ${onlyCodeDirective}`)
+				executeCommand(`You are a code documenting tool that receives {{LANG}} code and outputs the same code with comments in each line. ${onlyCodeDirective}`)
 				//executeCommand(workspace.getConfiguration('JuandyGPTExtension').get('documentPrompt', '') + onlyCodeDirective)
 		  );
 		}
@@ -117,11 +117,60 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(inquireDisposable);
 
-	const promptPanelDisposable = commands.registerCommand('juandy-gpt-assistant.showPanel', () => {
-		commands.executeCommand('workbench.view.extension.prompt-panel-view');
+	// Register the panel view and add it to the context subscriptions
+	const panelView = window.createTreeView('prompt-panel-view', {
+		treeDataProvider: new PanelViewDataProvider(context),
+		showCollapseAll: true
 	});
+	
+	context.subscriptions.push(panelView);
+}
 
-	context.subscriptions.push(promptPanelDisposable);
+/**
+ * This class is used to provide a structure to the panel view.
+ */
+class PanelViewDataProvider implements TreeDataProvider<TreeItem> {
+	private _onDidChangeTreeData: EventEmitter<TreeItem | undefined> = new EventEmitter<TreeItem | undefined>();
+	readonly onDidChangeTreeData: Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
+  
+	constructor(private context: ExtensionContext) {}
+
+	getTreeItem(element: TreeItem): TreeItem {
+	  	return element;
+	}
+  
+	getChildren(element?: TreeItem): Thenable<TreeItem[]> {
+		const iconPath = {
+			light: this.context.asAbsolutePath('resources/icon.ico'),
+			dark: this.context.asAbsolutePath('resources/icon.ico')
+		};
+
+		if (element === undefined) {
+			const optimizeButton = new TreeItem('Optimize');
+			optimizeButton.command = { command: 'juandy-gpt-assistant.optimize', title: 'Optimize', arguments: [] };
+			optimizeButton.iconPath = iconPath;
+
+			const documentButton = new TreeItem('Document');
+			documentButton.command = { command: 'juandy-gpt-assistant.document', title: 'Document', arguments: [] };
+			documentButton.iconPath = iconPath;
+
+			const analyzeButton = new TreeItem('Analyze');
+			analyzeButton.command = { command: 'juandy-gpt-assistant.analyze', title: 'Analyze', arguments: [] };
+			analyzeButton.iconPath = iconPath;
+
+			const dryButton = new TreeItem('DRY');
+			dryButton.command = { command: 'juandy-gpt-assistant.dry', title: 'DRY', arguments: [] };
+			dryButton.iconPath = iconPath;
+
+			const inquireButton = new TreeItem('Inquire');
+			inquireButton.command = { command: 'juandy-gpt-assistant.inquire', title: 'Inquire', arguments: [] };
+			inquireButton.iconPath = iconPath;
+			
+			return Promise.resolve([optimizeButton, documentButton, analyzeButton, dryButton, inquireButton]);
+		}
+	
+		return Promise.resolve([]);
+	}
 }
 
 /**
