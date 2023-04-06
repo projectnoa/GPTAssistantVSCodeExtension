@@ -3,7 +3,7 @@
   "publisher": "juandybuildsthestack",
   "displayName": "juandy-gpt-assistant",
   "description": "Coding extension that adds GPT features to VSCode",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.76.0"
   },
